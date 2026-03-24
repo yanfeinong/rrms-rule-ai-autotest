@@ -27,6 +27,9 @@ class RuleTextParser:
 
     def _parse_object(self, obj_text: str) -> tuple[str, str]:
         clean = obj_text.strip().replace("【", "").replace("】", "")
+        placeholder_tokens = ["库名", "表名", "字段名", "database", "table", "field"]
+        if any(token in clean.lower() for token in placeholder_tokens):
+            raise ValueError("对象为模板占位内容，需忽略并走自动推断")
         if "." not in clean:
             raise ValueError(f"对象格式错误，应为 库.表.字段: {obj_text}")
         parts = [p.strip() for p in clean.split(".") if p.strip()]
@@ -34,6 +37,33 @@ class RuleTextParser:
             raise ValueError(f"对象格式错误，应至少包含 表.字段: {obj_text}")
         source_table = parts[-2]
         target_field = parts[-1]
+        return source_table, target_field
+
+    def _extract_fields_from_expression(self, expression: str) -> list[str]:
+        # 支持 IsNotNullComb([字段1],[字段2]) / IsNotNull(field) 等表达式
+        left = expression.split("=", 1)[0].strip()
+        start = left.find("(")
+        end = left.rfind(")")
+        if start < 0 or end < 0 or end <= start:
+            return []
+        args_part = left[start + 1 : end]
+        args = [arg.strip() for arg in args_part.split(",") if arg.strip()]
+        fields: list[str] = []
+        for arg in args:
+            clean = arg.replace("[", "").replace("]", "").replace("【", "").replace("】", "").strip()
+            clean = clean.replace("字段", "field")
+            clean = re.sub(r"[^0-9a-zA-Z_]", "_", clean)
+            clean = re.sub(r"_+", "_", clean).strip("_")
+            if clean:
+                fields.append(clean.lower())
+        return fields
+
+    def _auto_source_and_target(self, rule_id: str, expression: str) -> tuple[str, str]:
+        fields = self._extract_fields_from_expression(expression)
+        if not fields:
+            fields = ["field_1"]
+        source_table = f"auto_rule_{rule_id.lower()}"
+        target_field = ",".join(fields)
         return source_table, target_field
 
     def _parse_text_rules(self, text: str) -> dict[str, Any]:
@@ -63,7 +93,13 @@ class RuleTextParser:
             desc_text = self._extract_between(block_text, "说明：", "\n")
             exec_rule_id = self._extract_between(block_text, "执行规则ID：", "\n") or rule_id
 
-            source_table, target_field = self._parse_object(obj_text)
+            if obj_text:
+                try:
+                    source_table, target_field = self._parse_object(obj_text)
+                except ValueError:
+                    source_table, target_field = self._auto_source_and_target(rule_id, expression)
+            else:
+                source_table, target_field = self._auto_source_and_target(rule_id, expression)
 
             semantics = {
                 "empty_values": ["", " ", "空"],

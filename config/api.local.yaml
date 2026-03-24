@@ -1,0 +1,9 @@
+mock_mode: true
+trigger:
+  url: "http://127.0.0.1:8080/rule/execute"
+  method: POST
+  token_env: "RULE_API_TOKEN"
+result:
+  url: "http://127.0.0.1:8080/rule/result"
+  method: POST
+  token_env: "RULE_API_TOKEN"

@@ -1,0 +1,14 @@
+mock_mode: false
+trigger:
+  url: "https://sit.rm.weoa.com/rrms-oaadmin/rest/api/vm/rule/customExec"
+  method: POST
+  token_env: "RULE_API_TOKEN"
+  payload_template:
+    portalId: "abc87017e5ad9feb9438d8bf5000e195"
+    ruleId_from: "rule.exec_rule_id"
+    checkDataTime_from: "runtime.biz_date"
+result:
+  enabled: false
+  url: ""
+  method: POST
+  token_env: "RULE_API_TOKEN"

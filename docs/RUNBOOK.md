@@ -11,6 +11,12 @@
 
 ## 2. 常用命令
 
+### 2.0 文本规则粘贴入口（推荐）
+
+- 文件：`input/rules_text.md`
+- 使用方式：把自然语言规则按模板粘贴到该文件，执行 `parse` 即可自动转换
+- 说明：当 `rules_text.md` 含有 `规则ID：` 时，`parse` 优先读取文本规则；否则读取 `input/rules_input.yaml`
+
 ### 2.1 单步骤执行
 
 ```bash

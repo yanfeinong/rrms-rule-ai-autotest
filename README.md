@@ -27,6 +27,9 @@ python3 run.py --step parse --env local
 python3 run.py --all --env local --release R20260324 --biz-date 2026-03-24
 ```
 
+文本规则粘贴入口：
+- `input/rules_text.md`（优先于 `input/rules_input.yaml`）
+
 ## CI
 
 - 本地 CI 脚本：`bash scripts/ci_local.sh`
